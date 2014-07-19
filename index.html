@@ -1,0 +1,406 @@
+<!DOCTYPE html><!--HTML5 doctype-->
+<html>
+<head>
+	<title>Your New Application</title>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0" />
+	<style type="text/css">
+		/* Prevent copy paste for all elements except text fields */
+		*  { -webkit-user-select:none; -webkit-tap-highlight-color:rgba(255, 255, 255, 0); }
+		input, textarea  { -webkit-user-select:text; }
+		body { background-color:#333; color:black }
+	</style>
+    
+    <link rel="stylesheet" href="css/jquery.mobile-1.4.0.min.css" />
+    <link rel="stylesheet" href="css/metro-bootstrap.min.css" />
+    <style type="text/css">
+		.ui-page { background: #1d1d1d;}
+        .flat { height:80% !important; overflow:auto !important; }
+        .text { text-shadow: none !important;}
+        .ui-loader { width: auto !important;}
+        .ui-icon-loading { margin: 0 auto !important; }
+	</style>
+    
+	<script src='intelxdk.js'></script>
+    <script src='js/jquery-1.11.0.min.js'></script>
+    <script type="text/javascript">
+        $(document).bind("mobileinit", function(){
+            $.event.special.swipe.horizontalDistanceThreshold (default: 30px);
+        });
+    </script>
+    <script src='js/jquery.mobile-1.4.0.min.js'></script>
+    <script src="js/jquery.ui.widget.min.js"></script>
+    <script src="js/metro.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    
+</head>
+<body class="metro" id="rssBody" style="height:100%;width:100%;">
+<!-- content goes here-->
+    <nav class="navigation-bar dark">
+        <nav class="navigation-bar-content">
+            <div id="menuShow" class="element place-right">
+                <a>
+                    <span class="fg-white icon-cog"></span>
+                </a>
+            </div>
+        </nav>
+    </nav>
+    
+    <nav class="vertical-menu bg-white" style="padding: 2em; float; z-index:3;">
+        <ul>
+            <li class="title">Discover</li>
+            <li><a href="#" id="techCategories">Show me Tech</a></li>
+            <li><a href="#" id="medicineCategories">Show me Medicine</a></li>
+            <li><a href="#" id="photoCategories">Show me Photos</a></li>
+            <li><a href="#" id="aboutPage">About This App</a></li>
+            <li id="menuDismiss">Close Menu</li>
+        </ul>
+    </nav>
+    
+    <div class="grid fluid tile-area tile-area-dark" style="height:100%;">
+        
+        <div id="rssMain" class="row">
+            
+        </div>
+        
+    </div>
+    
+<script type="text/javascript">
+		/* This code is used to run as soon as Intel activates */
+		var onDeviceReady=function(){
+		//hide splash screen
+		intel.xdk.device.hideSplashScreen();
+            
+            var displayCategory ='';
+            localStorage.setItem('pageNum',0);
+            
+            //start my code
+            if (localStorage.getItem('category')==null){
+                localStorage.setItem('category','tech');
+                displayCategory = 'tech';                
+            } else {
+                displayCategory = localStorage.getItem('category');
+            }
+            
+            displayMyRSS(displayCategory);
+            
+		};
+    
+		document.addEventListener("intel.xdk.device.ready",onDeviceReady,false);
+        
+        function displayMyRSS(displayCategory){
+            switch (displayCategory)
+            {
+            case 'tech':
+                    var rssFeeds=['David Blog','Yahoo Tech'];
+                    break;
+            case 'health':
+                    var rssFeeds=['BBC Health','Daily Health', 'Infectious Disease', 'Heart','Prevention'];
+                    break;
+            case 'photos':
+                    var rssFeeds=['Carl Borg', 'Aquarium'];
+                    break;
+            default:
+                   var rssFeeds=['David Blog','Yahoo Tech'];
+            }
+            
+            getRSS(rssFeeds[0]);
+            
+            localStorage.setItem('rssFeeds',JSON.stringify(rssFeeds));
+        };
+    
+        function displayRSS(feedName){
+            var links = JSON.parse(localStorage.getItem('links'+feedName));
+            var titles = JSON.parse(localStorage.getItem('titles'+feedName));
+            var images = JSON.parse(localStorage.getItem('images'+feedName));
+            var descriptions = JSON.parse(localStorage.getItem('descriptions'+feedName));
+            
+            var windowWidth=parseInt($(window).width());
+            var displayCategory = localStorage.getItem('category');
+            
+            rssHTML = '<h1 class="tile-area-title fg-white">'+feedName+'</h1>';
+            if (displayCategory=='photos') {
+                rssHTML = rssHTML + '<h4 class="tile-area-title fg-white" id="showSlideshow" style="padding-top:50px;">Show Slideshow</h4>';
+            }
+            for (var i=titles.length-1; i >= 0; i--){
+  
+                if ((images[i] === null) || (images[i] == undefined)){
+                    
+                    rssHTML=rssHTML+'<div class="tile bg-cyan" reftitle="'+titles[i]+'" reflink=\''+links[i]+'\' refdesc=\''+descriptions[i].replace(/'/g,"&#39;")+'\'><div class="brand bg-dark opacity"><span class="text fg-white"><strong>'+titles[i]+'</strong></span></div></div>';
+                    
+                } else {
+                    //cater for small form factor
+                    if (windowWidth <= 320){
+                        rssHTML=rssHTML+'<div class="tile" reftitle="'+titles[i]+'" reflink=\''+links[i]+'\' refdesc=\''+descriptions[i].replace(/'/g,"&#39;")+'\'><div class="tile-content image"><img src="'+images[i]+'"></div><div class="brand bg-dark opacity"><span class="text fg-white"><strong>'+titles[i]+'</strong></span></div></div>';
+                    } else {
+                        rssHTML=rssHTML+'<div class="tile double" reftitle="'+titles[i]+'" reflink=\''+links[i]+'\' refdesc=\''+descriptions[i].replace(/'/g,"&#39;")+'\'><div class="tile-content image"><img src="'+images[i]+'"></div><div class="brand bg-dark opacity"><span class="text fg-white"><strong>'+titles[i]+'</strong></span></div></div>';
+                    }
+                };
+                    
+            }
+            
+            $("#rssMain").html(rssHTML);
+            $('#showSlideshow').click(function(){
+                window.location = "./carousel.html";
+            });
+            
+        };
+    
+        function medicineCategories(){
+            $(".vertical-menu").hide(1000);
+            localStorage.setItem('category','health');
+            displayMyRSS('health');
+        }
+    
+        function photoCategories(){
+            $(".vertical-menu").hide(1000);
+            localStorage.setItem('category','photos');
+            displayMyRSS('photos');
+        }
+    
+        function techCategories(){
+            $(".vertical-menu").hide(1000);
+            localStorage.setItem('category','tech');
+            displayMyRSS('tech');
+        }
+        
+        function showAbout(){
+        
+            var htmlAbout = '<div class="tile-group-title"><h3 class="text fg-white">Tools</h3></div>\n\
+                <div class="tile bg-darkRed" reftitle="Metro UI CSS" reflink="http://metroui.org.ua/" refDesc="Metro UI CSS - Inspired by Microsoft Metro UI">\n\
+                    <div class="tile-content icon">\n\
+                        <img src="img/metro.jpg">\n\
+                    </div>\n\
+                    <div class="brand">\n\
+                        <div class="label text"><a href="http://metroui.org.ua/" class="fg-white">Metro UI CSS</a></div>\n\
+                    </div>\n\
+                </div>\n\
+                <div class="tile bg-lightBlue" reftitle="touchSwipe" reflink="http://labs.rampinteractive.co.uk/touchSwipe/demos/" refdesc="jQuery swipe library for touchscreen devices">\n\
+                    <div class="tile-content icon">\n\
+                        <img src="img/touchswipe.jpg">\n\
+                    </div>\n\
+                    <div class="brand">\n\
+                        <div class="label text"><a href="http://labs.rampinteractive.co.uk/touchSwipe/demos/" class="fg-white">touchSwipe</a></div>\n\
+                    </div>\n\
+                </div>\n\
+                <div class="tile bg-orange" reftitle="Intel XDK New" reflink="http://software.intel.com/en-us/html5/tools" refdesc="Develop apps in HTML5 and Javascript">\n\
+                    <div class="tile-content icon">\n\
+                        <img src="img/intelxdk.jpg">\n\
+                    </div>\n\
+                    <div class="brand">\n\
+                        <div class="label text"><a href="http://software.intel.com/en-us/html5/tools" class="fg-white">Intel XDK</a></div>\n\
+                    </div>\n\
+                </div>\n\
+                <div class="tile bg-darkPink" reftitle="Jquery" reflink="http://jquery.com/" refdesc="Jquery - our favourite javascript framework">\n\
+                    <div class="tile-content icon">\n\
+                        <img src="img/jquery.jpg">\n\
+                    </div>\n\
+                    <div class="brand">\n\
+                        <div class="label text"><a href="http://jquery.com/" class="fg-white">Jquery</a></div>\n\
+                    </div>\n\
+                </div>';
+            
+            $("#rssMain").html(htmlAbout);
+        };
+        
+        function getRSS(feed){
+            $.mobile.loading( 'show', {
+              text: 'Retrieving '+feed,
+              textVisible: true,
+              theme: "a",
+              textonly: 'true'
+            });
+            var feedName=feed;
+            
+            switch (feedName)
+            {
+            case 'David Blog':
+                    RSS_URL="http://query.yahooapis.com/v1/public/yql?q=select%20title%2Cdescription%2Clink%2Cmedia%3Acontent.url%20from%20feed%20where%20url%3D'http%3A%2F%2Fblog.davidvassallo.me%2Ffeed'%20%7C%20reverse()%20%7C%20unique%20(field%20%3D%20%22title%22)";
+                    break;
+            case 'Yahoo Tech':
+                    RSS_URL="http://query.yahooapis.com/v1/public/yql?q=select%20title%2Cdescription%2Clink%2Cmedia%3Acontent%20from%20feed%20where%20url%3D'http%3A%2F%2Fnews.yahoo.com%2Frss%2Ftech'%20%7C%20reverse()%20%7C%20unique(field%3D'title')";
+                    break;
+            case 'Daily Health':
+                    RSS_URL="http://query.yahooapis.com/v1/public/yql?q=select%20title%2Cdescription%2Clink%2Cmedia%3Acontent.url%20from%20feed%20where%20url%3D'http%3A%2F%2Fwww.medicinenet.com%2Frss%2Fdailyhealth.xml'%20%7C%20reverse()%20%7C%20unique%20(field%20%3D%20'title')";
+                    break;
+            case 'Heart':
+                    RSS_URL="http://query.yahooapis.com/v1/public/yql?q=select%20title%2Cdescription%2Clink%2Cmedia%3Acontent.url%20from%20feed%20where%20url%3D'http%3A%2F%2Fwww.medicinenet.com%2Frss%2Fgeneral%2Fheart.xml'%20%7C%20reverse()%20%7C%20unique%20(field%20%3D%20'title')";
+                    break;
+            case 'Infectious Disease':
+                    RSS_URL="http://query.yahooapis.com/v1/public/yql?q=select%20title%2Cdescription%2Clink%2Cmedia%3Acontent.url%20from%20feed%20where%20url%3D'http%3A%2F%2Fwww.medicinenet.com%2Frss%2Fgeneral%2Finfectious_disease.xml'%20%7C%20reverse()%20%7C%20unique%20(field%20%3D%20'title')";
+                    break;
+            case 'Prevention':
+                    RSS_URL="http://query.yahooapis.com/v1/public/yql?q=select%20title%2Cdescription%2Clink%2Cmedia%3Acontent.url%20from%20feed%20where%20url%3D'http%3A%2F%2Fwww.medicinenet.com%2Frss%2Fgeneral%2Fprevention_and_wellness.xml'%20%7C%20reverse()%20%7C%20unique%20(field%20%3D%20'title')";
+                    break;
+            case 'BBC Health':
+                    RSS_URL="http://query.yahooapis.com/v1/public/yql?q=select%20title%2Cdescription%2Clink%2Cmedia%3Athumbnail.url%20from%20feed%20where%20url%3D'http%3A%2F%2Ffeeds.bbci.co.uk%2Fnews%2Fhealth%2Frss.xml'%20%7C%20reverse()%20%7C%20unique%20(field%20%3D%20'title')";
+                    break;
+            case 'Carl Borg':
+                    RSS_URL="http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20flickr.photos.search%20where%20api_key%3D'50f64701cf96f24cc283ec90e29e4953'%20and%20user_id%3D'61434506%40N08'";
+                    break;
+            case 'Aquarium':
+                    RSS_URL="http://query.yahooapis.com/v1/public/yql?q=SELECT%20content%2Csummary%2Ctitle%20FROM%20google.picasa.album.photos%20WHERE%20user%3D'davevassallo'%20AND%20album_key_type%3D'album'%20AND%20album_key%3D'Aquarium'&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys"
+                    break;
+            default:
+                    RSS_URL="http://query.yahooapis.com/v1/public/yql?q=select%20title%2Cdescription%2Clink%2Cmedia%3Acontent.url%20from%20feed%20where%20url%3D'http%3A%2F%2Fblog.davidvassallo.me%2Ffeed'%20%7C%20reverse()%20%7C%20unique%20(field%20%3D%20%22title%22)";
+            }
+            
+            
+            var rssDataReq= $.post(RSS_URL,function(data){
+                
+                var xItems = data.getElementsByTagName("item");
+                var titles = [];
+                var links = [];
+                var images = [];
+                var descriptions = [];
+                
+                switch (feedName)
+                {
+                    case 'Carl Borg':
+                        //Flickr example
+                        var xItems = data.getElementsByTagName("photo");
+                        for (i=0;i<xItems.length;i++)
+                          {
+                              titles.push(xItems[i].getAttribute("title"));
+                              links.push('http://www.flickr.com/photos/carlborg/'+xItems[i].getAttribute("id"));
+                              descriptions.push(xItems[i].getAttribute("title"));
+                              images.push('http://farm'+xItems[i].getAttribute("farm")+'.static.flickr.com/'+xItems[i].getAttribute("server")+'/'+xItems[i].getAttribute("id")+'_'+xItems[i].getAttribute("secret")+'.jpg');                
+                          };
+                        break;
+                    case 'Aquarium':
+                        //Picassa (google) example
+                        var xItems = data.getElementsByTagName("entry");
+                        for (i=0;i<xItems.length;i++)
+                          {
+                              titles.push(xItems[i].getElementsByTagName("title")[0].textContent);
+                              links.push('https://plus.google.com/photos/+DavidVassallo/albums/5968733348669794737');
+                              descriptions.push(xItems[i].getElementsByTagName("summary")[0].textContent);
+                              images.push(xItems[i].getElementsByTagName("content")[0].getAttribute("src"));
+                          };
+                        break;
+                    default:
+                        //RSS example
+                        for (i=0;i<xItems.length;i++)
+                          {
+                                var xTitle=xItems[i].getElementsByTagName("title");
+                                var xLink=xItems[i].getElementsByTagName("link");
+                                var xImage=xItems[i].getElementsByTagName("content");
+                                if (xImage.length == 0){
+                                    xImage=xItems[i].getElementsByTagName("thumbnail");
+                                }
+                                var xDesciption=xItems[i].getElementsByTagName("description");
+                              
+                              if (xTitle[0].getAttribute("type") === null){
+                                  titles.push(xTitle[0].textContent);
+                              };
+                              if (xLink[0].getAttribute("href") === null){
+                                  links.push(xLink[0].textContent);
+                              };
+                              if (xDesciption[0].getAttribute("href") === null){
+                                  descriptions.push(xDesciption[0].textContent);
+                              };
+                              
+                              try {
+                                  var imgUrl = xImage[0].getAttribute("url");
+                                  if (imgUrl.indexOf("gravatar") != -1 ){
+                                      images.push(null);
+                                  } else {
+                                      images.push(xImage[0].getAttribute("url"));
+                                  };
+                              } catch (err) {
+                                  images.push(null);
+                              }
+                              
+                          };
+                }
+                
+                localStorage.setItem('titles'+feedName, JSON.stringify(titles));
+                localStorage.setItem('links'+feedName, JSON.stringify(links));
+                localStorage.setItem('images'+feedName, JSON.stringify(images));
+                localStorage.setItem('descriptions'+feedName, JSON.stringify(descriptions));
+                displayRSS(feedName);
+                $.mobile.loading( 'hide' );
+            })
+            
+            .fail(function(data) {
+                alert( "error: " + JSON.stringify(data) );
+              });
+        };   
+        
+        $(document).ready(function(){
+            
+                $("#rssMain").on('click', '.tile', function(){
+                    var articleTitle = $(this).attr('reftitle');
+                    var articleDesc = $(this).attr('refdesc');
+                    var articleLink = $(this).attr('reflink');
+                    
+                    $.Dialog({
+                        overlay: true,
+                        shadow: true,
+                        width: '100%',
+                        flat: true,
+                        title: '',
+                        content: '',
+                        onShow: function(){
+                            $.Dialog.content('<strong>' + articleTitle + '</strong><hr>' + articleDesc + ' <a href="'+articleLink+'">See more</a>');
+                        }
+                    });
+                });
+            
+            $(".vertical-menu").hide();
+            
+            $("#menuShow").click(function(){
+                $(".vertical-menu").show(2000);
+            });
+            
+            $("#aboutPage").click(function(){
+                showAbout();
+            });
+            
+            $("#medicineCategories").click(function(){
+                medicineCategories();
+            });
+            
+            $("#techCategories").click(function(){
+                techCategories();
+            });
+            
+            $("#photoCategories").click(function(){
+                photoCategories();
+            });
+            
+            $("#menuDismiss").click(function(){
+                $(".vertical-menu").hide(1000);
+            });
+
+            // Bind the swipeHandler callback function to the swipe event on div.box
+            $( ".ui-page-active" ).on( "swiperight", swiperightHandler );
+            $( ".ui-page-active" ).on( "swipeleft", swipeleftHandler );
+             
+            function swiperightHandler( event ) {
+                var rssFeeds = JSON.parse(localStorage.getItem('rssFeeds'));
+                var numFeeds = rssFeeds.length;
+                var pageNum = parseInt(localStorage.getItem('pageNum'));
+                var curPage = Math.abs((pageNum-1) % numFeeds);
+                
+                var displayFeed = rssFeeds[curPage];
+                localStorage.setItem('pageNum',(pageNum-1));
+                getRSS(displayFeed);
+              };
+            
+            function swipeleftHandler( event ) {
+                var rssFeeds = JSON.parse(localStorage.getItem('rssFeeds'));
+                var numFeeds = rssFeeds.length;
+                var pageNum = parseInt(localStorage.getItem('pageNum'));
+                var curPage = Math.abs((pageNum+1) % numFeeds);
+                
+                var displayFeed = rssFeeds[curPage];
+                localStorage.setItem('pageNum',(pageNum+1));
+                getRSS(displayFeed);
+              };
+            
+        });
+</script>
+    
+</body>
+</html>

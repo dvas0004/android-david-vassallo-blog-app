@@ -1,0 +1,83 @@
+<!DOCTYPE html><!--HTML5 doctype-->
+<html>
+<head>
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <style type="text/css">
+    .carousel-inner img {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+        
+    </style>
+    <script src='intelxdk.js'></script>
+    <script src='js/jquery-1.11.0.min.js'></script>
+    <script src="js/bootstrap.min.js"></script>
+
+</head>
+<body>
+    
+    <div>
+    <div class="modal fade" id="photoModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            
+          </div>
+          <div class="modal-body" id="rssMain">
+            
+          </div>
+          <div class="modal-footer">
+            <a class="btn btn-default" href="./index.html">Close</a>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+    </div>
+    
+    <script type="text/javascript">
+        $(document).ready( function() {
+
+        var feedName = 'Carl Borg';
+        
+        var links = JSON.parse(localStorage.getItem('links'+feedName));
+        var titles = JSON.parse(localStorage.getItem('titles'+feedName));
+        var images = JSON.parse(localStorage.getItem('images'+feedName));
+        var descriptions = JSON.parse(localStorage.getItem('descriptions'+feedName));
+    
+        var carouselIndicators = '';
+        var carouselInner = '';
+         
+        for (var i=titles.length-1; i > 0; i--){
+            
+            carouselIndicators = '<li data-target="#carousel-carl" data-slide-to="'+i+'" class=""></li>'+carouselIndicators;
+            carouselInner = '<div class="item"><img alt="'+titles[i]+'" src="'+images[i]+'"></div>'+carouselInner;
+            
+        }
+            
+            carouselIndicators = '<li data-target="#carousel-carl" data-slide-to="0" class="active"></li>'+carouselIndicators;
+            carouselInner = '<div class="item active"><img alt="'+titles[0]+'" src="'+images[0]+'"></div>'+carouselInner;
+
+        rssHTML = '<div><div id="carousel-carl" class="carousel slide" data-ride="carousel"><ol class="carousel-indicators">';
+        rssHTML = rssHTML + carouselIndicators;
+        rssHTML = rssHTML + '</ol><div class="carousel-inner">';
+        rssHTML = rssHTML + carouselInner;
+        rssHTML = rssHTML + '</div><a class="left carousel-control" href="#carousel-carl" data-slide="prev"><span class="glyphicon glyphicon-chevron-left"></span></a><a class="right carousel-control" href="#carousel-carl" data-slide="next"><span class="glyphicon glyphicon-chevron-right"></span></a></div></div>';
+                
+        $("#rssMain").html(rssHTML);
+        
+        $('.carousel').carousel({
+          interval: 5000
+        })
+        
+        $('#photoModal').modal('show');
+            
+        });
+            
+    </script>
+    
+</body>
+    
+    
+</html>
